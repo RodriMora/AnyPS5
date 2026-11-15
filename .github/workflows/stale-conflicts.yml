@@ -7,6 +7,10 @@ on:
 
 permissions: {}
 
+concurrency:
+  group: stale-conflicts
+  cancel-in-progress: false
+
 jobs:
   warn:
     runs-on: ubuntu-latest

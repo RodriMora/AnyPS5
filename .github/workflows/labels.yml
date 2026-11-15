@@ -9,6 +9,9 @@ on:
 
 permissions: {}
 
+concurrency:
+  group: labels
+
 jobs:
   sync:
     runs-on: ubuntu-latest

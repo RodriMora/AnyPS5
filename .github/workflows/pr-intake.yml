@@ -9,6 +9,7 @@ permissions: {}
 
 concurrency:
   group: pr-intake-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   intake:
