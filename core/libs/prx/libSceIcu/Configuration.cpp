@@ -113,6 +113,7 @@ void APS5_VABI u_cleanup_nid_postfix() {
     const std::lock_guard lock(DirectoryLock);
     DataDirectory.clear();
     TimeZoneDirectory.clear();
+    IcuResetDefaultLocaleID_nid_no_patch();
 }
 
 void IcuReleaseMemory_nid_no_patch(void* memory) {
