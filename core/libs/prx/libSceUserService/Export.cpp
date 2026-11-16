@@ -37,6 +37,7 @@ struct UserEvent {
 
 std::deque<UserEvent> eventQueue;
 std::array<bool, USER_SERVICE_MAX_USERS> userConnected{true, false, false, false};
+std::atomic<int> foregroundUserId{USER_SERVICE_INITIAL_USER_ID};
 
 int UserIndex(int userId) {
     if (userId >= USER_SERVICE_INITIAL_USER_ID && userId < USER_SERVICE_INITIAL_USER_ID + USER_SERVICE_MAX_USERS) {
@@ -558,7 +559,7 @@ int APS5_VABI sceUserServiceGetForegroundUser(int* user_id) {
  if (user_id == nullptr) {
   return USER_SERVICE_ERROR_INVALID_ARGUMENT;
  }
- const int foregroundUser = USER_SERVICE_INITIAL_USER_ID;
+ const int foregroundUser = foregroundUserId.load(std::memory_order_relaxed);
  const int savedErrno = errno;
  const bool copied = GuestCopyOut_nid_no_patch(user_id, &foregroundUser, sizeof(foregroundUser));
  errno = savedErrno;
@@ -2380,8 +2381,12 @@ int APS5_VABI sceUserServiceSetShareStatus2(void) {
 }
 
 int APS5_VABI sceUserServiceSetForegroundUser(int userId) {
-    NotImplemented_nid_no_patch(__func__);
-    return 0;
+ const int index = UserIndex(userId);
+ if (index < 0) {
+  return USER_SERVICE_ERROR_UNKNOWN_USER;
+ }
+ foregroundUserId.store(USER_SERVICE_INITIAL_USER_ID + index, std::memory_order_relaxed);
+ return USER_SERVICE_OK;
 }
 
 int APS5_VABI sceUserServiceSetGlsAccessTokenTwitch(void) {

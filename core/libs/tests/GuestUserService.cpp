@@ -467,5 +467,30 @@ int main() {
     Require(sceUserServiceGetIsSpartacusEnabled(USER_SERVICE_INITIAL_USER_ID, reinterpret_cast<bool*>(0x10)) == USER_SERVICE_ERROR_INVALID_ARGUMENT);
     Require(errno == 71);
 
+    const int invalidForegroundUsers[] = {
+        0,
+        USER_SERVICE_USER_ID_INVALID,
+        123,
+        USER_SERVICE_INITIAL_USER_ID - 1,
+        USER_SERVICE_INITIAL_USER_ID + USER_SERVICE_MAX_USERS,
+        0x20000000,
+        0x30000000,
+        static_cast<int>(0xFFFFFFFFu),
+    };
+    for (int invalidId : invalidForegroundUsers) {
+        Require(sceUserServiceSetForegroundUser(invalidId) == USER_SERVICE_ERROR_UNKNOWN_USER);
+        Require(sceUserServiceGetForegroundUser(&foreground) == USER_SERVICE_OK);
+        Require(foreground == USER_SERVICE_INITIAL_USER_ID);
+    }
+    for (int i = 1; i < USER_SERVICE_MAX_USERS; ++i) {
+        const int userId = USER_SERVICE_INITIAL_USER_ID + i;
+        Require(sceUserServiceSetForegroundUser(userId) == USER_SERVICE_OK);
+        Require(sceUserServiceGetForegroundUser(&foreground) == USER_SERVICE_OK);
+        Require(foreground == userId);
+    }
+    Require(sceUserServiceSetForegroundUser(USER_SERVICE_INITIAL_USER_ID) == USER_SERVICE_OK);
+    Require(sceUserServiceGetForegroundUser(&foreground) == USER_SERVICE_OK);
+    Require(foreground == USER_SERVICE_INITIAL_USER_ID);
+
     return 0;
 }
